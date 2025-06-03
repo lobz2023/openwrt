@@ -1,0 +1,50 @@
+name: Build OpenWrt DIR-615 E4 (AR7240)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build OpenWrt firmware
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential clang flex bison g++ gawk \
+            gcc-multilib g++-multilib gettext git libncurses-dev \
+            libssl-dev python3-distutils rsync unzip zlib1g-dev file
+
+      - name: Clone OpenWrt
+        run: |
+          git clone https://git.openwrt.org/openwrt/openwrt.git
+          cd openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Copy custom config
+        run: |
+          cp .config openwrt/.config
+
+      - name: Build firmware
+        run: |
+          cd openwrt
+          make defconfig
+          make download -j$(nproc) || true
+          make -j$(nproc)
+
+      - name: Show firmware files
+        run: ls -lh openwrt/bin/targets/ath79/generic/
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: openwrt-dir615-e4
+          path: openwrt/bin/targets/ath79/generic/
