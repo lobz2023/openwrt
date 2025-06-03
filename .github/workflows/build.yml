@@ -44,7 +44,7 @@ jobs:
         run: ls -lh openwrt/bin/targets/ath79/generic/
 
       - name: Upload firmware
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
           name: openwrt-dir615-e4
           path: openwrt/bin/targets/ath79/generic/
